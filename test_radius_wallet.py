@@ -174,6 +174,10 @@ class TestToWei:
     def test_large_amount(self):
         assert _to_wei(1_000_000, 6) == 1_000_000_000_000
 
+    def test_too_many_decimals_raises(self):
+        with pytest.raises(ValueError, match="more than 6 decimal places"):
+            _to_wei("0.0000009", 6)
+
 
 class TestFromWei:
     def test_one_token_18_decimals(self):
@@ -400,6 +404,18 @@ class TestTransactionConstruction:
     def test_send_sbc_rejects_negative(self, wallet):
         with pytest.raises(ValueError, match="negative"):
             wallet.send_sbc(RECIPIENT, -1.0)
+
+    def test_send_rusd_rejects_zero(self, wallet):
+        with pytest.raises(ValueError, match="greater than zero"):
+            wallet.send_rusd(RECIPIENT, 0)
+
+    def test_send_sbc_rejects_zero(self, wallet):
+        with pytest.raises(ValueError, match="greater than zero"):
+            wallet.send_sbc(RECIPIENT, 0)
+
+    def test_send_sbc_rejects_precision_overflow(self, wallet):
+        with pytest.raises(ValueError, match="more than 6 decimal places"):
+            wallet.send_sbc(RECIPIENT, "0.0000009")
 
 
 # ---------------------------------------------------------------------------

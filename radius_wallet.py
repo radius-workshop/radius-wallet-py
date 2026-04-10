@@ -18,7 +18,7 @@ import os
 import re
 import time
 import uuid
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from typing import Any, Optional, Union
 
 import httpx
@@ -119,8 +119,14 @@ def _to_wei(amount: Union[float, str], decimals: int) -> int:
         raise ValueError(f"Invalid amount: {amount!r}") from e
     if d < 0:
         raise ValueError(f"Amount cannot be negative, got {amount}")
-    # Shift decimal point and truncate to integer (no fractional base units)
-    result = int(d * Decimal(10) ** decimals)
+    factor = Decimal(10) ** decimals
+    scaled = d * factor
+    rounded_down = scaled.to_integral_value(rounding=ROUND_DOWN)
+    if scaled != rounded_down:
+        raise ValueError(
+            f"Amount {amount!r} has more than {decimals} decimal places."
+        )
+    result = int(rounded_down)
     return result
 
 
@@ -267,6 +273,8 @@ class RadiusWallet:
         """Send RUSD (native token) to an address. Returns tx hash."""
         _validate_address(to)
         value = _to_wei(amount, RUSD_DECIMALS)
+        if value <= 0:
+            raise ValueError("Amount must be greater than zero.")
         tx = {
             "to": to,
             "value": value,
@@ -284,6 +292,8 @@ class RadiusWallet:
         Returns tx hash."""
         _validate_address(to)
         base_units = _to_wei(amount, SBC_DECIMALS)
+        if base_units <= 0:
+            raise ValueError("Amount must be greater than zero.")
         calldata = (
             _TRANSFER_SELECTOR + _pad_address(to) + _pad_uint256(base_units)
         )
