@@ -162,3 +162,7 @@ pip install git+https://github.com/radius-workshop/radius-wallet-py.git
 ## Production Notes
 
 This library uses a local private key for signing. This is fine for testnet and hackathons, but for production you should use a managed signing service like [Privy](https://privy.io/) to keep keys secure. See the [Nanda Wallet Concierge](https://github.com/radius-workshop/nanda-wallet-concierge) for an example of the Privy integration pattern.
+
+---
+
+> ⚠️ **Demo code — not production-ready.** Provided as-is, without warranty, and may contain known, unpatched vulnerabilities (including in dependencies). If you reuse it, run your own security and supply-chain scans and patch before deploying.
